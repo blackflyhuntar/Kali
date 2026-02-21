@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIFT — The Gaming Language</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --panel: #0d1220;
+    --border: #1a2540;
+    --accent: #00e5ff;
+    --accent2: #ff4757;
+    --accent3: #7bed9f;
+    --accent4: #ffd32a;
+    --dim: #3a4a6b;
+    --text: #c8d8f0;
+    --subtext: #6a7fa8;
+    --glow: 0 0 16px rgba(0,229,255,0.35);
+    --glow2: 0 0 16px rgba(255,71,87,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated scanline background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.013) 2px,
+      rgba(0,229,255,0.013) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 56px 0 40px;
+    position: relative;
+  }
+  .logo-tag {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(56px, 10vw, 100px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -2px;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  h1::after {
+    content: 'v1.0';
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--accent);
+    position: absolute;
+    top: 8px;
+    margin-left: 12px;
+    letter-spacing: 2px;
+  }
+  .tagline {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--subtext);
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+  }
+  .tagline em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  .badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border: 1px solid var(--dim);
+    border-radius: 2px;
+    color: var(--subtext);
+    background: var(--panel);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 48px 0 32px;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── KEYWORD GRID ── */
+  .keyword-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+  .kw-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    cursor: default;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .kw-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.2s;
+    transform-origin: bottom;
+  }
+  .kw-card:hover { border-color: var(--accent); background: #0f1829; }
+  .kw-card:hover::before { transform: scaleY(1); }
+  .kw-card:hover .kw-name { color: var(--accent); text-shadow: var(--glow); }
+
+  .kw-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+  }
+  .kw-equiv {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .kw-desc { font-size: 13px; color: var(--subtext); line-height: 1.4; font-weight: 300; }
+
+  /* color variants */
+  .kw-card[data-color="red"]::before { background: var(--accent2); }
+  .kw-card[data-color="red"]:hover { border-color: var(--accent2); }
+  .kw-card[data-color="red"]:hover .kw-name { color: var(--accent2); text-shadow: var(--glow2); }
+
+  .kw-card[data-color="green"]::before { background: var(--accent3); }
+  .kw-card[data-color="green"]:hover { border-color: var(--accent3); }
+  .kw-card[data-color="green"]:hover .kw-name { color: var(--accent3); }
+
+  .kw-card[data-color="yellow"]::before { background: var(--accent4); }
+  .kw-card[data-color="yellow"]:hover { border-color: var(--accent4); }
+  .kw-card[data-color="yellow"]:hover .kw-name { color: var(--accent4); }
+
+  /* ── CODE EXAMPLES ── */
+  .examples { display: flex; flex-direction: column; gap: 32px; }
+  .example {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .example-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #0a1019;
+    border-bottom: 1px solid var(--border);
+  }
+  .example-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .example-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dot-r { background: var(--accent2); }
+  .dot-y { background: var(--accent4); }
+  .dot-g { background: var(--accent3); }
+  .example-desc {
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--subtext);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.5px;
+    font-weight: 300;
+  }
+  pre {
+    padding: 24px 24px;
+    overflow-x: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.75;
+    tab-size: 2;
+  }
+  /* syntax highlight */
+  .k { color: #00e5ff; }         /* keyword */
+  .k2 { color: #ff4757; }        /* control flow */
+  .k3 { color: #ffd32a; }        /* special */
+  .fn { color: #7bed9f; }        /* function/ability name */
+  .str { color: #eccc68; }       /* string */
+  .num { color: #a29bfe; }       /* number */
+  .cmt { color: #3a4a6b; font-style: italic; }  /* comment */
+  .cls { color: #fd79a8; }       /* class */
+  .prop { color: #74b9ff; }      /* property */
+  .op { color: #b2bec3; }        /* operator */
+
+  /* ── TYPE TABLE ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 2px;
+  }
+  .type-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .type-rift {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    color: var(--accent3);
+    margin-bottom: 4px;
+  }
+  .type-arrow { color: var(--dim); font-size: 11px; margin-bottom: 4px; }
+  .type-real { font-size: 12px; color: var(--subtext); letter-spacing: 1px; }
+
+  /* ── INTERACTIVE PLAYGROUND ── */
+  .playground {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .playground-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #0a1019;
+    border-bottom: 1px solid var(--border);
+  }
+  .playground-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent4);
+    text-transform: uppercase;
+  }
+  .run-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #000;
+    background: var(--accent3);
+    border: none;
+    padding: 6px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    border-radius: 1px;
+  }
+  .run-btn:hover { background: #a8e6bf; box-shadow: 0 0 12px rgba(123,237,159,0.5); }
+  .run-btn:active { transform: scale(0.97); }
+
+  .pg-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 640px) { .pg-body { grid-template-columns: 1fr; } }
+
+  .pg-editor {
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .pg-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--accent3);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    padding: 16px;
+    resize: vertical;
+    min-height: 180px;
+    caret-color: var(--accent);
+  }
+  .pg-output { background: #070b11; }
+  .output-content {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--accent3);
+    padding: 16px;
+    min-height: 180px;
+    white-space: pre-wrap;
+    line-height: 1.75;
+  }
+  .output-content.error { color: var(--accent2); }
+  .output-content .sys { color: var(--dim); }
+
+  /* ── PHILOSOPHY ── */
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  @media (max-width: 640px) { .principles { grid-template-columns: 1fr; } }
+  .principle {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+  }
+  .principle-icon { font-size: 28px; margin-bottom: 12px; }
+  .principle-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .principle-body { font-size: 14px; color: var(--subtext); line-height: 1.6; font-weight: 300; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 80px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    padding-bottom: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="fade-in">
+    <div class="logo-tag">Recursive Instruction Framework for Tacticians</div>
+    <h1>RIFT</h1>
+    <p class="tagline">A <em>powerful, expressive</em> language built for gamers who code.</p>
+    <div class="badges">
+      <span class="badge">STRONGLY TYPED</span>
+      <span class="badge">MULTI-PARADIGM</span>
+      <span class="badge">COMPILED + INTERPRETED</span>
+      <span class="badge">GARBAGE COLLECTED</span>
+      <span class="badge">.rift FILES</span>
+    </div>
+  </header>
+
+  <!-- PHILOSOPHY -->
+  <div class="divider fade-in"><div class="divider-line"></div><div class="divider-label">Design Philosophy</div><div class="divider-line"></div></div>
+  <div class="principles fade-in">
+    <div class="principle">
+      <div class="principle-icon">⚔️</div>
+      <div class="principle-title">Power First</div>
+      <div class="principle-body">RIFT doesn't hide complexity. Every mechanic of the language is exposed, named, and controllable — like having all the console commands.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-icon">🗺️</div>
+      <div class="principle-title">Readable as a Quest Log</div>
+      <div class="principle-body">Code reads like a strategy. You <em>equip</em> libraries, <em>spawn</em> objects, <em>grind</em> loops, and <em>loot</em> return values.</div>
+    </div>
+    <div class="principle">
+      <div class="principle-icon">🛡️</div>
+      <div class="principle-title">Safe Respawns</div>
+      <div class="principle-body">Errors don't crash the world — you <em>attempt</em> risky code and <em>respawn</em> from failure states, always with full context.</div>
+    </div>
+  </div>
+
+  <!-- KEYWORDS -->
+  <div class="divider fade-in"><div class="divider-line"></div><div class="divider-label">Core Keywords</div><div class="divider-line"></div></div>
+  <div class="keyword-grid fade-in">
+
+    <div class="kw-card">
+      <div class="kw-name">spawn</div>
+      <div class="kw-equiv">≡ new / instantiate</div>
+      <div class="kw-desc">Creates a new instance of a class, like spawning an entity into the world.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">class</div>
+      <div class="kw-equiv">≡ class</div>
+      <div class="kw-desc">Defines a character archetype — the blueprint for all spawned instances.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">ability</div>
+      <div class="kw-equiv">≡ function / method</div>
+      <div class="kw-desc">A named, callable action. Abilities belong to classes or exist as standalone powers.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">stat</div>
+      <div class="kw-equiv">≡ let / var</div>
+      <div class="kw-desc">Declares a mutable variable. Every hero has stats that change over time.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">rune</div>
+      <div class="kw-equiv">≡ const</div>
+      <div class="kw-desc">Declares an immutable constant. Runes are permanent enchantments — they never change.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">loot</div>
+      <div class="kw-equiv">≡ return</div>
+      <div class="kw-desc">Returns a value from an ability. Every ability either drops loot or returns void.</div>
+    </div>
+    <div class="kw-card" data-color="red">
+      <div class="kw-name">grind</div>
+      <div class="kw-equiv">≡ while / for</div>
+      <div class="kw-desc">A loop that keeps running until the condition fails or you break out.</div>
+    </div>
+    <div class="kw-card" data-color="red">
+      <div class="kw-name">foreach</div>
+      <div class="kw-equiv">≡ for...of</div>
+      <div class="kw-desc">Iterates every item in an inventory (array), one by one.</div>
+    </div>
+    <div class="kw-card" data-color="red">
+      <div class="kw-name">escape</div>
+      <div class="kw-equiv">≡ break</div>
+      <div class="kw-desc">Immediately exits the current grind loop — flee the dungeon.</div>
+    </div>
+    <div class="kw-card" data-color="red">
+      <div class="kw-name">skip</div>
+      <div class="kw-equiv">≡ continue</div>
+      <div class="kw-desc">Skips to the next loop iteration without executing remaining code.</div>
+    </div>
+    <div class="kw-card" data-color="yellow">
+      <div class="kw-name">scout</div>
+      <div class="kw-equiv">≡ if</div>
+      <div class="kw-desc">Checks a condition before proceeding. Recon before engaging.</div>
+    </div>
+    <div class="kw-card" data-color="yellow">
+      <div class="kw-name">fallback</div>
+      <div class="kw-equiv">≡ else</div>
+      <div class="kw-desc">The plan B when the scout condition is false.</div>
+    </div>
+    <div class="kw-card" data-color="yellow">
+      <div class="kw-name">branch</div>
+      <div class="kw-equiv">≡ switch / match</div>
+      <div class="kw-desc">Pattern-matches a value across multiple cases — fork the quest path.</div>
+    </div>
+    <div class="kw-card" data-color="yellow">
+      <div class="kw-name">path</div>
+      <div class="kw-equiv">≡ case</div>
+      <div class="kw-desc">A single branch in a branch statement. Each quest path.</div>
+    </div>
+    <div class="kw-card" data-color="green">
+      <div class="kw-name">equip</div>
+      <div class="kw-equiv">≡ import</div>
+      <div class="kw-desc">Loads an external module or library. Gear up before the dungeon.</div>
+    </div>
+    <div class="kw-card" data-color="green">
+      <div class="kw-name">forge</div>
+      <div class="kw-equiv">≡ export</div>
+      <div class="kw-desc">Makes an ability or class available to other modules.</div>
+    </div>
+    <div class="kw-card" data-color="green">
+      <div class="kw-name">attempt</div>
+      <div class="kw-equiv">≡ try</div>
+      <div class="kw-desc">Wraps risky code — if it fails, you respawn instead of dying.</div>
+    </div>
+    <div class="kw-card" data-color="green">
+      <div class="kw-name">respawn</div>
+      <div class="kw-equiv">≡ catch</div>
+      <div class="kw-desc">Handles errors from an attempt block. Second chance, full context.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">raid</div>
+      <div class="kw-equiv">≡ async</div>
+      <div class="kw-desc">Declares an asynchronous ability. Raids take time — plan accordingly.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">sync</div>
+      <div class="kw-equiv">≡ await</div>
+      <div class="kw-desc">Waits for a raid to complete before continuing. Hold position.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">broadcast</div>
+      <div class="kw-equiv">≡ print / console.log</div>
+      <div class="kw-desc">Outputs a message to the console. Ping your team.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">void</div>
+      <div class="kw-equiv">≡ null / None</div>
+      <div class="kw-desc">Represents the absence of a value. The empty inventory slot.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">alive / dead</div>
+      <div class="kw-equiv">≡ true / false</div>
+      <div class="kw-desc">Boolean literals. Alive means the condition holds. Dead means it doesn't.</div>
+    </div>
+    <div class="kw-card">
+      <div class="kw-name">wipe</div>
+      <div class="kw-equiv">≡ delete / del</div>
+      <div class="kw-desc">Removes a variable or property from scope. The whole party wiped.</div>
+    </div>
+  </div>
+
+  <!-- TYPE SYSTEM -->
+  <div class="divider fade-in"><div class="divider-line"></div><div class="divider-label">Type System</div><div class="divider-line"></div></div>
+  <div class="type-grid fade-in">
+    <div class="type-card"><div class="type-rift">hp</div><div class="type-arrow">▸</div><div class="type-real">int</div></div>
+    <div class="type-card"><div class="type-rift">xp</div><div class="type-arrow">▸</div><div class="type-real">float</div></div>
+    <div class="type-card"><div class="type-rift">lore</div><div class="type-arrow">▸</div><div class="type-real">string</div></div>
+    <div class="type-card"><div class="type-rift">flag</div><div class="type-arrow">▸</div><div class="type-real">bool</div></div>
+    <div class="type-card"><div class="type-rift">inventory</div><div class="type-arrow">▸</div><div class="type-real">array</div></div>
+    <div class="type-card"><div class="type-rift">loadout</div><div class="type-arrow">▸</div><div class="type-real">object / map</div></div>
+    <div class="type-card"><div class="type-rift">sigil</div><div class="type-arrow">▸</div><div class="type-real">symbol</div></div>
+    <div class="type-card"><div class="type-rift">void</div><div class="type-arrow">▸</div><div class="type-real">null</div></div>
+  </div>
+
+  <!-- CODE EXAMPLES -->
+  <div class="divider fade-in"><div class="divider-line"></div><div class="divider-label">Code Examples</div><div class="divider-line"></div></div>
+  <div class="examples">
+
+    <!-- Example 1 -->
+    <div class="example fade-in">
+      <div class="example-header">
+        <span class="example-title">Hello, World</span>
+        <div class="example-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      </div>
+      <div class="example-desc">The simplest RIFT program — broadcast to the world.</div>
+      <pre><span class="cmt">// main.rift — entry point</span>
+
+<span class="k">ability</span> <span class="fn">main</span>()
